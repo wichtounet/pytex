@@ -323,7 +323,7 @@ class Watch(Compile):
         self.logger.info('Watching {} for changes...'.format(base))
 
         observer = monitor.Observer()
-        observer.monitor(os.path.realpath('.'), handler, self.config)
+        observer.monitor(os.path.realpath('.'), handler)
         observer.start()
 
         try:

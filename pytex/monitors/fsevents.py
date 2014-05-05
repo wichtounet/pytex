@@ -42,7 +42,7 @@ class Stream(fsevents.Stream):
 
 class Observer(fsevents.Observer):
 
-    def monitor(self, path, callback, config):
+    def monitor(self, path, callback):
         stream = Stream(callback, path)
         super(Observer, self).schedule(stream)
 
