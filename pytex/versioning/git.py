@@ -38,11 +38,13 @@ class Tag(object):
         self._tagger = self._parse_tagger(details)
 
     def _parse_date(self, details):
-        match = re.search('^Date:\s+(?P<date>.*)$', details, flags=re.MULTILINE)
+        match = re.search('^Date:\s+(?P<date>.*)$',
+                          details, flags=re.MULTILINE)
         return dparser.parse(match.group('date'))
 
     def _parse_tagger(self, details):
-        match = re.search('^Tagger: (?P<tagger>[^<]+) <(?P<email>[^>]+)>$', details, flags=re.MULTILINE)
+        match = re.search('^Tagger: (?P<tagger>[^<]+) <(?P<email>[^>]+)>$',
+                          details, flags=re.MULTILINE)
         return match.group('tagger'), match.group('email')
 
     def __str__(self):
@@ -78,10 +80,22 @@ class VersionControl(VersionControlProvider):
 
         return self
 
+    def pull(self):
+        self.runcmd('git', 'pull')
+        self.logger.info('Pulled from remote')
+
+        return self
+
+    def push(self):
+        self.runcmd('git', 'push')
+        self.logger.info('Pushed to remote')
+
+        return self
+
     def tag(self, name, message):
         self.runcmd('git', 'tag', '-a', name, '-m', message)
         self.logger.info('Tag {!r} created'.format(name))
-        #http://learn.github.com/p/tagging.html
+#       http://learn.github.com/p/tagging.html
 
         return self
 
