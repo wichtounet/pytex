@@ -216,6 +216,10 @@ class RstProcessor(Transformer):
     def handle_emphasis(self, line):
         return self.handle_style(line, "*", "*", "textit")
 
+    # Handle citations
+    def handle_citations(self, line):
+        return self.handle_style(line, "[", "]_", "autocite")
+
     # Handle options
     def handle_options(self, lines):
         for line in lines:
@@ -319,24 +323,32 @@ class RstProcessor(Transformer):
             # Print the very last line
             self.print_line(lines[len(lines) - 1])
 
+    STEP_OPTIONS = 0
+    STEP_CODE = STEP_OPTIONS + 1
+    STEP_SECTIONS = STEP_CODE + 1
+    STEP_FRAMES = STEP_SECTIONS + 1
+    STEP_LISTS = STEP_FRAMES + 1
+    STEP_STYLES = STEP_LISTS + 1
+    STEPS = STEP_STYLES
+
     # Process a single file
     def process_lines(self, lines, step):
         ignored = False
 
         # Handle options
-        if step is 0:
+        if step is self.STEP_OPTIONS:
             self.handle_options(lines)
 
             return True
 
         # Handle code blocks
-        if step is 1:
+        if step is self.STEP_CODE:
             self.handle_code(lines)
 
             return True
 
         # Handle sections
-        if step is 2:
+        if step is self.STEP_SECTIONS:
             self.handle_sections(lines)
 
             return True
@@ -352,15 +364,15 @@ class RstProcessor(Transformer):
                 continue
 
             # Handle frames
-            if step is 3:
+            if step is self.STEP_FRAMES:
                 self.print_line(self.handle_frames(line))
 
             # Handle lists
-            if step is 4:
+            if step is self.STEP_LISTS:
                 self.print_line(self.handle_lists(line))
 
             # Handle styles
-            if step is 5:
+            if step is self.STEP_STYLES:
                 # Handle inline code
                 processed = self.handle_inline(line)
 
@@ -370,6 +382,9 @@ class RstProcessor(Transformer):
                 # Handle emphasis
                 processed = self.handle_emphasis(processed)
 
+                # Handle citations
+                processed = self.handle_citations(processed)
+
                 self.print_line(processed)
 
-        return step < 4
+        return step < self.STEPS
