@@ -3,6 +3,9 @@ pytex
 
 **A command line tool to ease the redaction of LaTeX documents.**
 
+*NOTE*: This is a fork of the original project by garetjax. This fork focuses
+on easing Latex document writing by adding some RestructuredText features to
+the Latex syntax.
 
 Installation
 ------------
@@ -33,16 +36,16 @@ specific subcommand.
 
     $ pytex --help
     usage: pytex [-h] [--version] [-v] [-q]
-                 
+
                  {clean,compile,watch,diff,init,spellcheck,list-templates,update-templates,save,tag}
                  ...
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       --version             show program's version number and exit
       -v, --verbose         Increments the verbosity (can be used multiple times).
       -q, --quiet           Decrements the verbosity (can be used multiple times).
-    
+
     subcommands:
       {clean,compile,watch,diff,init,spellcheck,list-templates,update-templates,save,tag}
         clean               Clean the document by deleting all files resulted from
