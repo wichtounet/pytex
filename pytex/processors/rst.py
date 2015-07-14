@@ -9,6 +9,8 @@ class RstProcessor(Transformer):
     list_stack = []
     inside_frame = False
 
+    options = []
+
     name = "RestructuredText processor"
 
     # Indicates if the processor wants to proces the given file or not
@@ -214,6 +216,20 @@ class RstProcessor(Transformer):
     def handle_emphasis(self, line):
         return self.handle_style(line, "*", "*", "textit")
 
+    # Handle options
+    def handle_options(self, lines):
+        for line in lines:
+            stripped = line.rstrip()
+
+            if stripped.startswith('.. option:: '):
+                option = stripped.replace('.. option:: ', "")
+                option = option.strip()
+
+                if option == "chapter":
+                    self.options.append(option)
+            else:
+                self.print_line(line)
+
     # Handle sections
     def handle_code(self, lines):
         inside_code = False
@@ -272,14 +288,26 @@ class RstProcessor(Transformer):
 
                     index = levels.index(char)
 
-                    if index is 0:
-                        self.print_line("\section{" + first_line + "}")
-                    elif index is 1:
-                        self.print_line("\subsection{" + first_line + "}")
-                    elif index is 2:
-                        self.print_line("\subsubsection{" + first_line + "}")
+                    if "chapter" in self.options:
+                        if index is 0:
+                            self.print_line("\chapter{" + first_line + "}")
+                        elif index is 1:
+                            self.print_line("\section{" + first_line + "}")
+                        elif index is 2:
+                            self.print_line("\subsection{" + first_line + "}")
+                        elif index is 4:
+                            self.print_line("\subsubsection{" + first_line + "}")
+                        else:
+                            self.print_line("Section too deep:" + first_line)
                     else:
-                        self.print_line("Section too deep:" + first_line)
+                        if index is 0:
+                            self.print_line("\section{" + first_line + "}")
+                        elif index is 1:
+                            self.print_line("\subsection{" + first_line + "}")
+                        elif index is 2:
+                            self.print_line("\subsubsection{" + first_line + "}")
+                        else:
+                            self.print_line("Section too deep:" + first_line)
 
                     lines[i+1] = ""
                 else:
@@ -287,21 +315,28 @@ class RstProcessor(Transformer):
             else:
                 self.print_line(first_line)
 
-        # Print the very last line
-        self.print_line(lines[len(lines) - 1])
+        if len(lines) > 0:
+            # Print the very last line
+            self.print_line(lines[len(lines) - 1])
 
     # Process a single file
     def process_lines(self, lines, step):
         ignored = False
 
-        # Handle code blocks
+        # Handle options
         if step is 0:
+            self.handle_options(lines)
+
+            return True
+
+        # Handle code blocks
+        if step is 1:
             self.handle_code(lines)
 
             return True
 
         # Handle sections
-        if step is 1:
+        if step is 2:
             self.handle_sections(lines)
 
             return True
@@ -317,15 +352,15 @@ class RstProcessor(Transformer):
                 continue
 
             # Handle frames
-            if step is 2:
+            if step is 3:
                 self.print_line(self.handle_frames(line))
 
             # Handle lists
-            if step is 3:
+            if step is 4:
                 self.print_line(self.handle_lists(line))
 
             # Handle styles
-            if step is 4:
+            if step is 5:
                 # Handle inline code
                 processed = self.handle_inline(line)
 
