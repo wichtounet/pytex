@@ -220,6 +220,10 @@ class RstProcessor(Transformer):
     def handle_citations(self, line):
         return self.handle_style(line, "[", "]_", "autocite")
 
+    # Handle glossary terms
+    def handle_glossary(self, line):
+        return self.handle_style(line, "|", "|", "gls")
+
     # Handle options
     def handle_options(self, lines):
         for line in lines:
@@ -384,6 +388,9 @@ class RstProcessor(Transformer):
 
                 # Handle citations
                 processed = self.handle_citations(processed)
+
+                # Handle glossary
+                processed = self.handle_glossary(processed)
 
                 self.print_line(processed)
 
