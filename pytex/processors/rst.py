@@ -225,12 +225,12 @@ class RstProcessor(Transformer):
         for line in lines:
             stripped = line.rstrip()
 
-            if stripped.startswith('.. option:: '):
-                option = stripped.replace('.. option:: ', "")
+            if stripped.startswith(':Parameter '):
+                option = stripped.replace(':Parameter ', "")
                 option = option.strip()
 
-                if option == "chapter":
-                    self.options.append(option)
+                if option == "chapter:":
+                    self.options.append("chapter")
             else:
                 self.print_line(line)
 
