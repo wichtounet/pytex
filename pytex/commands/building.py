@@ -71,6 +71,8 @@ class Compile(Command):
                 support.append('bibliography')
             if args.glossary:
                 support.append('glossaries')
+            if args.index:
+                support.append('index')
             if nomencl:
                 support.append('nomenclature')
 
@@ -84,6 +86,9 @@ class Compile(Command):
 
             if args.glossary:
                 self.compile_glossary(tempdir, master)
+
+            if args.index:
+                self.compile_index(tempdir, master)
 
             if nomencl:
                 self.compile_nomencl(tempdir, master)
@@ -106,6 +111,8 @@ class Compile(Command):
         parser.add_argument('--bibtex', '-b', action='store_const', const=True,
                             default=False)
         parser.add_argument('--glossary', '-g', action='store_const',
+                            const=True, default=False)
+        parser.add_argument('--index', '-i', action='store_const',
                             const=True, default=False)
         parser.add_argument('--define', '-d', action='append')
         parser.add_argument('master', nargs='?', default='master')
@@ -179,6 +186,22 @@ class Compile(Command):
             self.logger.error(e)
         else:
             self.logger.info('Glossaries updated')
+
+    def compile_index(self, tempdir, master):
+        cmd = shlex.split(self.config.get('compilation', 'index'))
+        cmd += [
+            master,
+        ]
+        self.logger.debug(' '.join(cmd))
+
+        try:
+            subprocess.check_output(cmd, cwd=tempdir)
+            pass
+        except subprocess.CalledProcessError as e:
+            self.logger.error(e.output)
+            self.logger.error(e)
+        else:
+            self.logger.info('Index updated')
 
     def compile_bib(self, tempdir, master):
         base = os.path.realpath('.')
