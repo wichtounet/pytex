@@ -10,6 +10,8 @@ from pytex.monitors import monitor
 from pytex.subcommands import Command
 from pytex.utils import find_files_of_type
 
+from pytex.processors import loadprocessors
+
 import re
 
 
@@ -42,7 +44,18 @@ class Compile(Command):
 
         # TODO: Make a plugin architecture to allow additional actions
         # to be run when compiling. This would allow to move the bibtex,
-        # glossary and nomenclature out of this class.
+        # glossary, nomenclature and preprocessors out of this class.
+
+        processors = loadprocessors(self.config, self.logger)
+
+        if processors:
+            for root, dirs, files in os.walk(os.path.realpath('.')):
+                for file in files:
+                    source = os.path.join(root, file)
+
+                    for processor in processors:
+                        if processor.wants(source):
+                            processor.process_file(source)
 
         nomencl = self.get_nomencl_version(tempdir, master)
 
@@ -171,9 +184,8 @@ class Compile(Command):
         base = os.path.realpath('.')
 
         cmd = shlex.split(self.config.get('compilation', 'bibliography'))
-        cmd += [
-            '{}.aux'.format(master),
-        ]
+        cmd += [master]
+
         self.logger.debug(' '.join(cmd))
 
         try:
@@ -281,6 +293,8 @@ class Watch(Compile):
         if ignore_regex_str:
             ignore_regex = re.compile(ignore_regex_str)
 
+        processors = loadprocessors(self.config, self.logger)
+
         def handler(event):
             relative = event.path[len(base) + 1:]
 
@@ -318,6 +332,11 @@ class Watch(Compile):
             if event.path.endswith('.log'):
                 self.logger.debug('Ignoring {!r}'.format(relative))
                 return
+
+            for p in processors:
+                if p.wants(event.path):
+                    p.process_file(event.path)
+                    return
 
             if isinstance(event, monitor.base.FileCreated):
                 if event.path.endswith('.tex'):
