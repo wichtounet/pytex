@@ -282,7 +282,9 @@ class RstProcessor(Transformer):
         for line in lines:
             if not self.handle_code(line):
                 if not self.handle_frames(line):
-                    self.print_line(line)
+                    # Filter comments
+                    if not line.strip().startswith('.. '):
+                        self.print_line(line)
 
     # Handle sections
     def handle_sections(self, lines):
