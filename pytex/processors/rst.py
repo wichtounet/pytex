@@ -127,7 +127,9 @@ class RstProcessor(Transformer):
             frame_name = stripped.replace('.. frame:: ', "")
             self.inside_frame = True
 
-            return "\\begin{frame}[fragile]{" + frame_name + "}"
+            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+
+            return True
         elif stripped.startswith('.. sframe:: '):
             self.end_frame()
 
@@ -135,8 +137,9 @@ class RstProcessor(Transformer):
             self.inside_frame = True
 
             self.print_line("\section{" + frame_name + "}")
+            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
 
-            return "\\begin{frame}[fragile]{" + frame_name + "}"
+            return True
         elif stripped.startswith('.. ssframe:: '):
             self.end_frame()
 
@@ -144,8 +147,9 @@ class RstProcessor(Transformer):
             self.inside_frame = True
 
             self.print_line("\subsection{" + frame_name + "}")
+            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
 
-            return "\\begin{frame}[fragile]{" + frame_name + "}"
+            return True
         elif stripped.startswith('.. toc::'):
             toc_name = stripped.replace('.. toc::', "")
             toc_name = toc_name.strip()
@@ -170,18 +174,25 @@ class RstProcessor(Transformer):
                 self.print_line("\\endgroup");
                 self.print_line("\\end{frame}")
 
-            return "";
-
+            return True
         elif stripped.startswith('\end{document}'):
             self.end_frame()
+            self.print_line(line)
+            return True
         elif stripped.startswith('\section'):
             self.end_frame()
+            self.print_line(line)
+            return True
         elif stripped.startswith('\subsection'):
             self.end_frame()
+            self.print_line(line)
+            return True
         elif stripped.startswith('\subsubsection'):
             self.end_frame()
+            self.print_line(line)
+            return True
 
-        return line
+        return False
 
     # Handle some ReST style
     def handle_style(self, line, rst_begin, rst_end, latex):
@@ -238,31 +249,40 @@ class RstProcessor(Transformer):
             else:
                 self.print_line(line)
 
+    # Handle code directive
+    def handle_code(self, line):
+        stripped = line.rstrip()
+
+        if stripped.startswith('.. code:: '):
+            self.code = stripped.replace('.. code:: ', "").strip()
+
+            if not self.code:
+                self.code = "cpp"
+
+            self.inside_code = True
+
+            self.print_line("%__rst_ignore__")
+            self.print_line("\\begin{" + self.code + "code}")
+
+            return True
+        elif self.inside_code and not stripped.startswith('  '):
+            self.inside_code = False
+            self.print_line("\\end{" + self.code + "code}")
+            self.print_line("%__rst_ignore__")
+            self.print_line(line)
+
+            return True
+        else:
+            return False
+
     # Handle directives
     def handle_directives(self, lines):
-        inside_code = False
+        self.inside_code = False
 
         for line in lines:
-            stripped = line.rstrip()
-
-            if stripped.startswith('.. code:: '):
-                code = stripped.replace('.. code:: ', "")
-                code = code.strip()
-
-                if not code:
-                    code = "cpp"
-
-                inside_code = True
-
-                self.print_line("%__rst_ignore__")
-                self.print_line("\\begin{" + code + "code}")
-            elif inside_code and not stripped.startswith('  '):
-                inside_code = False
-                self.print_line("\\end{" + code + "code}")
-                self.print_line("%__rst_ignore__")
-                self.print_line(line)
-            else:
-                self.print_line(line)
+            if not self.handle_code(line):
+                if not self.handle_frames(line):
+                    self.print_line(line)
 
     # Handle sections
     def handle_sections(self, lines):
@@ -328,10 +348,9 @@ class RstProcessor(Transformer):
             self.print_line(lines[len(lines) - 1])
 
     STEP_OPTIONS = 0
-    STEP_CODE = STEP_OPTIONS + 1
-    STEP_SECTIONS = STEP_CODE + 1
-    STEP_FRAMES = STEP_SECTIONS + 1
-    STEP_LISTS = STEP_FRAMES + 1
+    STEP_SECTIONS = STEP_OPTIONS + 1
+    STEP_DIRECTIVES = STEP_SECTIONS + 1
+    STEP_LISTS = STEP_DIRECTIVES + 1
     STEP_STYLES = STEP_LISTS + 1
     STEPS = STEP_STYLES
 
@@ -345,15 +364,15 @@ class RstProcessor(Transformer):
 
             return True
 
-        # Handle code blocks
-        if step is self.STEP_CODE:
-            self.handle_directives(lines)
-
-            return True
-
         # Handle sections
         if step is self.STEP_SECTIONS:
             self.handle_sections(lines)
+
+            return True
+
+        # Handle directives
+        if step is self.STEP_DIRECTIVES:
+            self.handle_directives(lines)
 
             return True
 
@@ -366,10 +385,6 @@ class RstProcessor(Transformer):
             if ignored:
                 self.print_line(line)
                 continue
-
-            # Handle frames
-            if step is self.STEP_FRAMES:
-                self.print_line(self.handle_frames(line))
 
             # Handle lists
             if step is self.STEP_LISTS:
