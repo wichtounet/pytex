@@ -238,8 +238,8 @@ class RstProcessor(Transformer):
             else:
                 self.print_line(line)
 
-    # Handle sections
-    def handle_code(self, lines):
+    # Handle directives
+    def handle_directives(self, lines):
         inside_code = False
 
         for line in lines:
@@ -347,7 +347,7 @@ class RstProcessor(Transformer):
 
         # Handle code blocks
         if step is self.STEP_CODE:
-            self.handle_code(lines)
+            self.handle_directives(lines)
 
             return True
 
