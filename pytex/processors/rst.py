@@ -92,7 +92,7 @@ class RstProcessor(Transformer):
         stripped = line.lstrip()
 
         # Compute the depth of the list based on the number of spaces
-        # before the * char
+        # before the start character
         depth = len(line) - len(stripped)
 
         if stripped.startswith('1.'):
@@ -104,6 +104,16 @@ class RstProcessor(Transformer):
             self.handle_item(depth, 1)
 
             return "\item " + stripped.replace("*", "", 1)
+
+        elif stripped.startswith('+'):
+            self.handle_item(depth, 1)
+
+            return "\item " + stripped.replace("+", "", 1)
+
+        elif stripped.startswith('-'):
+            self.handle_item(depth, 1)
+
+            return "\item " + stripped.replace("-", "", 1)
 
         else:
             while self.list_stack:
