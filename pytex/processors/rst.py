@@ -160,6 +160,26 @@ class RstProcessor(Transformer):
             self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
 
             return True
+        elif stripped.startswith('.. suframe:: '):
+            self.end_frame()
+
+            frame_name = stripped.replace('.. suframe:: ', "")
+            self.inside_frame = True
+
+            self.print_line("\section*{" + frame_name + "}")
+            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+
+            return True
+        elif stripped.startswith('.. ssuframe:: '):
+            self.end_frame()
+
+            frame_name = stripped.replace('.. ssuframe:: ', "")
+            self.inside_frame = True
+
+            self.print_line("\subsection*{" + frame_name + "}")
+            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+
+            return True
         elif stripped.startswith('.. toc::'):
             toc_name = stripped.replace('.. toc::', "")
             toc_name = toc_name.strip()
