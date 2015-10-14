@@ -203,6 +203,24 @@ class RstProcessor(Transformer):
                 self.print_line("\\tableofcontents[currentsection]");
                 self.print_line("\\endgroup");
                 self.print_line("\\end{frame}")
+            elif toc_name == "multicol":
+                self.print_line("\\begin{frame}[c]{Table of Contents}")
+                self.print_line("\\centering")
+                self.print_line("\\begin{columns}")
+                self.print_line("\\begin{column}{0.4\\textwidth}")
+                self.print_line("\\begingroup");
+                self.print_line("\\setcounter{tocdepth}{1}");
+                self.print_line("\\tableofcontents[currentsection]");
+                self.print_line("\\endgroup");
+                self.print_line("\\end{column}")
+                self.print_line("\\begin{column}{0.4\\textwidth}")
+                self.print_line("\\begingroup");
+                self.print_line("\\setcounter{tocdepth}{2}");
+                self.print_line("\\tableofcontents[currentsection,hideothersubsections,sectionstyle=show/hide]");
+                self.print_line("\\endgroup");
+                self.print_line("\\end{column}")
+                self.print_line("\\end{columns}")
+                self.print_line("\\end{frame}")
 
             return True
         elif stripped.startswith('\end{document}'):
