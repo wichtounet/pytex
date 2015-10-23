@@ -373,7 +373,7 @@ class RstProcessor(Transformer):
                             self.print_line("\section{" + first_line + "}")
                         elif index is 2:
                             self.print_line("\subsection{" + first_line + "}")
-                        elif index is 4:
+                        elif index is 3:
                             self.print_line("\subsubsection{" + first_line + "}")
                         else:
                             self.print_line("Section too deep:" + first_line)
