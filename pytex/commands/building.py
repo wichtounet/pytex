@@ -372,6 +372,8 @@ class Watch(Compile):
                         self.logger.info('Added subdirectory {!r} to the '
                                          'build directory'.format(subdir))
 
+            gls_watch = self.config.get('watch', 'glossary')
+
             if event.path.endswith('.bib'):
                 self.logger.info('Change detected at {!r}, recompiling with '
                                  'bibliography support...'.format(relative))
@@ -380,11 +382,11 @@ class Watch(Compile):
                 self.compile(tempdir, master, defs=defs)
                 self.compile(tempdir, master, dest, defs=defs)
                 self.logger.info('All done')
-            elif event.path.endswith('.gls'):
+            elif event.path.endswith('.gls') or relative == gls_watch:
                 self.logger.info('Change detected at {!r}, recompiling with '
                                  'glossary support...'.format(relative))
                 self.compile(tempdir, master, defs=defs)
-                self.compile_glossary(tempdir, master, defs=defs)
+                self.compile_glossary(tempdir, master)
                 self.compile(tempdir, master, defs=defs)
                 self.compile(tempdir, master, dest, defs=defs)
                 self.logger.info('All done')
