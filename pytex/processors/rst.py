@@ -131,6 +131,8 @@ class RstProcessor(Transformer):
     def handle_frames(self, line):
         stripped = line.rstrip()
 
+        print stripped
+
         if stripped.startswith('.. frame:: '):
             self.end_frame()
 
@@ -369,15 +371,21 @@ class RstProcessor(Transformer):
             self.print_line("%__rst_ignore__")
             self.print_line("\\begin{" + self.code + "code}")
 
+            # The line is consumed
             return True
-        elif self.inside_code and not stripped.startswith('  '):
+        elif self.inside_code and len(stripped) > 0 and not stripped.startswith('  '):
             self.inside_code = False
             self.print_line("\\end{" + self.code + "code}")
             self.print_line("%__rst_ignore__")
-            self.print_line(line)
 
+            # We do not consume this line
+            return False
+        elif self.inside_code:
+            # The line is printed and then consumed
+            self.print_line(line)
             return True
         else:
+            # We do not consume this line
             return False
 
     # Handle directives
