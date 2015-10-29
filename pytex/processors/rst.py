@@ -273,6 +273,32 @@ class RstProcessor(Transformer):
 
         return [False, 0]
 
+    # Handle blocks
+    def handle_blocks(self, lines, i):
+        line = lines[i]
+        stripped = line.rstrip()
+
+        if stripped.startswith('.. block:: '):
+            text = stripped.replace('.. block:: ', "")
+
+            title = "Definition"
+
+            n = 1
+            while True:
+                if lines[i + n].startswith('   :title: '):
+                    title = lines[i + n].replace('   :title: ', "")
+                    n += 1
+                else:
+                    break
+
+            self.print_line("\\begin{block}{" + title + "}")
+            self.print_line(text)
+            self.print_line("\\end{block}")
+
+            return [True, n - 1]
+
+        return [False, 0]
+
     # Handle some ReST style
     def handle_style(self, line, rst_begin, rst_end, latex):
         first_index = line.find(rst_begin)
@@ -378,6 +404,13 @@ class RstProcessor(Transformer):
             ret_images, inc_images = self.handle_images(lines, i)
             if ret_images:
                 i += inc_images
+                i += 1
+                continue
+
+            # 3 Handle blocks
+            ret_blocks, inc_blocks = self.handle_blocks(lines, i)
+            if ret_blocks:
+                i += inc_blocks
                 i += 1
                 continue
 
