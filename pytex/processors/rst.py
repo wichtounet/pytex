@@ -242,6 +242,37 @@ class RstProcessor(Transformer):
 
         return False
 
+    # Handle images
+    def handle_images(self, lines, i):
+        line = lines[i]
+        stripped = line.rstrip()
+
+        if stripped.startswith('.. image:: '):
+            path = stripped.replace('.. image:: ', "")
+
+            center = False
+            factor = ""
+
+            n = 1
+            while True:
+                if lines[i + n].startswith('   :factor: '):
+                    factor = lines[i + n].replace('   :factor: ', "")
+                    n += 1
+                elif lines[i + n].startswith('   :center:'):
+                    center = True
+                    n += 1
+                else:
+                    break
+
+            if center:
+                self.print_line("\center")
+
+            self.print_line("\includegraphics[width=" + factor + "\\textwidth]{" + path + "}")
+
+            return [True, n - 1]
+
+        return [False, 0]
+
     # Handle some ReST style
     def handle_style(self, line, rst_begin, rst_end, latex):
         first_index = line.find(rst_begin)
@@ -327,12 +358,34 @@ class RstProcessor(Transformer):
     def handle_directives(self, lines):
         self.inside_code = False
 
-        for line in lines:
-            if not self.handle_code(line):
-                if not self.handle_frames(line):
-                    # Filter comments
-                    if not line.strip().startswith('.. '):
-                        self.print_line(line)
+        n = len(lines)
+        i = 0
+
+        while i < n:
+            line = lines[i]
+
+            # 0 Handle code directives
+            if self.handle_code(line):
+                i += 1
+                continue
+
+            # 1 Handle frames
+            if self.handle_frames(line):
+                i += 1
+                continue
+
+            # 2 Handle images
+            ret_images, inc_images = self.handle_images(lines, i)
+            if ret_images:
+                i += inc_images
+                i += 1
+                continue
+
+            # Finaly, filter comments
+            if not line.strip().startswith('.. '):
+                self.print_line(line)
+
+            i += 1
 
     # Handle sections
     def handle_sections(self, lines):
