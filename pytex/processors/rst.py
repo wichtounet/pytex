@@ -131,8 +131,6 @@ class RstProcessor(Transformer):
     def handle_frames(self, line):
         stripped = line.rstrip()
 
-        print stripped
-
         if stripped.startswith('.. frame:: '):
             self.end_frame()
 
