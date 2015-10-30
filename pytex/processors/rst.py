@@ -135,48 +135,53 @@ class RstProcessor(Transformer):
             self.end_frame()
 
             frame_name = stripped.replace('.. frame:: ', "")
+            title = self.latex_escape(frame_name)
             self.inside_frame = True
 
-            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+            self.print_line("\\begin{frame}[fragile]{" + title + "}")
 
             return True
         elif stripped.startswith('.. sframe:: '):
             self.end_frame()
 
             frame_name = stripped.replace('.. sframe:: ', "")
+            title = self.latex_escape(frame_name)
             self.inside_frame = True
 
-            self.print_line("\section{" + frame_name + "}")
-            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+            self.print_line("\section{" + title + "}")
+            self.print_line("\\begin{frame}[fragile]{" + title + "}")
 
             return True
         elif stripped.startswith('.. ssframe:: '):
             self.end_frame()
 
             frame_name = stripped.replace('.. ssframe:: ', "")
+            title = self.latex_escape(frame_name)
             self.inside_frame = True
 
-            self.print_line("\subsection{" + frame_name + "}")
-            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+            self.print_line("\subsection{" + title + "}")
+            self.print_line("\\begin{frame}[fragile]{" + title + "}")
 
             return True
         elif stripped.startswith('.. suframe:: '):
             self.end_frame()
 
             frame_name = stripped.replace('.. suframe:: ', "")
+            title = self.latex_escape(frame_name)
             self.inside_frame = True
 
-            self.print_line("\section*{" + frame_name + "}")
-            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+            self.print_line("\section*{" + title + "}")
+            self.print_line("\\begin{frame}[fragile]{" + title + "}")
 
             return True
         elif stripped.startswith('.. ssuframe:: '):
             self.end_frame()
 
             frame_name = stripped.replace('.. ssuframe:: ', "")
+            title = self.latex_escape(frame_name)
             self.inside_frame = True
 
-            self.print_line("\subsection*{" + frame_name + "}")
+            self.print_line("\subsection*{" + title + "}")
             self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
 
             return True
