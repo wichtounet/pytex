@@ -428,6 +428,9 @@ class RstProcessor(Transformer):
 
             i += 1
 
+    def latex_escape(self, value):
+        return value.replace('_', '\_')
+
     # Handle sections
     def handle_sections(self, lines):
         levels = []
@@ -459,25 +462,26 @@ class RstProcessor(Transformer):
                         levels.append(char)
 
                     index = levels.index(char)
+                    title = self.latex_escape(first_line)
 
                     if "chapter" in self.options:
                         if index is 0:
-                            self.print_line("\chapter{" + first_line + "}")
+                            self.print_line("\chapter{" + title + "}")
                         elif index is 1:
-                            self.print_line("\section{" + first_line + "}")
+                            self.print_line("\section{" + title + "}")
                         elif index is 2:
-                            self.print_line("\subsection{" + first_line + "}")
+                            self.print_line("\subsection{" + title + "}")
                         elif index is 3:
-                            self.print_line("\subsubsection{" + first_line + "}")
+                            self.print_line("\subsubsection{" + title + "}")
                         else:
-                            self.print_line("Section too deep:" + first_line)
+                            self.print_line("Section too deep:" + title)
                     else:
                         if index is 0:
-                            self.print_line("\section{" + first_line + "}")
+                            self.print_line("\section{" + title + "}")
                         elif index is 1:
-                            self.print_line("\subsection{" + first_line + "}")
+                            self.print_line("\subsection{" + title + "}")
                         elif index is 2:
-                            self.print_line("\subsubsection{" + first_line + "}")
+                            self.print_line("\subsubsection{" + title + "}")
                         else:
                             self.print_line("Section too deep:" + first_line)
 
