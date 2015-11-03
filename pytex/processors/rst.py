@@ -359,11 +359,20 @@ class RstProcessor(Transformer):
             else:
                 self.print_line(line)
 
+    # End code block
+    def end_code(self):
+        self.inside_code = False
+        self.print_line("\\end{" + self.code + "code}")
+        self.print_line("%__rst_ignore__")
+
     # Handle code directive
     def handle_code(self, line):
         stripped = line.rstrip()
 
         if stripped.startswith('.. code:: '):
+            if self.inside_code:
+                self.end_code()
+
             self.code = stripped.replace('.. code:: ', "").strip()
 
             if not self.code:
@@ -377,9 +386,7 @@ class RstProcessor(Transformer):
             # The line is consumed
             return True
         elif self.inside_code and len(stripped) > 0 and not stripped.startswith('  '):
-            self.inside_code = False
-            self.print_line("\\end{" + self.code + "code}")
-            self.print_line("%__rst_ignore__")
+            self.end_code()
 
             # We do not consume this line
             return False
