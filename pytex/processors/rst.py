@@ -24,7 +24,8 @@ class RstProcessor(Transformer):
     # Checks that no list is still open
     def end(self):
         if self.list_stack:
-            self.logger.error("Something went wrong in list handling")
+            while self.list_stack:
+                self.end_list()
 
     # start a list
     def start_list(self, depth, type):
@@ -447,7 +448,7 @@ class RstProcessor(Transformer):
 
         ignored = False
 
-        for i in range(len(lines) - 2):
+        for i in range(len(lines) - 1):
             first_line = lines[i]
             second_line = lines[i+1]
 
