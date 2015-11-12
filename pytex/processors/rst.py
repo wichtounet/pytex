@@ -399,9 +399,44 @@ class RstProcessor(Transformer):
             # We do not consume this line
             return False
 
+    # End math block
+    def end_math(self):
+        self.inside_math = False
+        self.print_line("\\end{align}")
+        self.print_line("%__rst_ignore__")
+
+    # Handle math directive
+    def handle_math(self, line):
+        stripped = line.rstrip()
+
+        if stripped.startswith('.. math::'):
+            if self.inside_math:
+                self.end_math()
+
+            self.inside_math = True
+
+            self.print_line("%__rst_ignore__")
+            self.print_line("\\begin{align}")
+
+            # The line is consumed
+            return True
+        elif self.inside_math and not stripped.startswith('  '):
+            self.end_math()
+
+            # We do not consume this line
+            return False
+        elif self.inside_math:
+            # The line is printed and then consumed
+            self.print_line(line)
+            return True
+        else:
+            # We do not consume this line
+            return False
+
     # Handle directives
     def handle_directives(self, lines):
         self.inside_code = False
+        self.inside_math = False
 
         n = len(lines)
         i = 0
@@ -409,24 +444,29 @@ class RstProcessor(Transformer):
         while i < n:
             line = lines[i]
 
-            # 0 Handle code directives
+            # Handle code directives
             if self.handle_code(line):
                 i += 1
                 continue
 
-            # 1 Handle frames
+            # Handle math directives
+            if self.handle_math(line):
+                i += 1
+                continue
+
+            # Handle frames
             if self.handle_frames(line):
                 i += 1
                 continue
 
-            # 2 Handle images
+            # Handle images
             ret_images, inc_images = self.handle_images(lines, i)
             if ret_images:
                 i += inc_images
                 i += 1
                 continue
 
-            # 3 Handle blocks
+            # Handle blocks
             ret_blocks, inc_blocks = self.handle_blocks(lines, i)
             if ret_blocks:
                 i += inc_blocks
