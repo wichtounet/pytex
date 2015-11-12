@@ -326,9 +326,34 @@ class RstProcessor(Transformer):
 
         return line
 
+    # Handle some ReST style
+    def handle_style_special(self, line, rst_begin, rst_end, latex_begin, latex_end):
+        first_index = line.find(rst_begin)
+
+        while first_index != -1:
+            second_index = line.find(rst_end, first_index+len(rst_begin))
+
+            if second_index == -1:
+                break
+
+            if second_index - first_index > len(rst_begin):
+                line = line[:first_index] + \
+                    latex_begin + \
+                    line[first_index+len(rst_begin):second_index] + \
+                    latex_end + \
+                    line[second_index+len(rst_end):]
+
+            first_index = line.find(rst_begin, second_index+len(rst_end))
+
+        return line
+
     # Handle inline code
-    def handle_inline(self, line):
+    def handle_inline_code(self, line):
         return self.handle_style(line, ":code:`", "`", "cppi")
+
+    # Handle inline math
+    def handle_inline_math(self, line):
+        return self.handle_style_special(line, ":math:`", "`", "$", "$")
 
     # Handle bold
     def handle_bold(self, line):
@@ -592,7 +617,10 @@ class RstProcessor(Transformer):
             # Handle styles
             if step is self.STEP_STYLES:
                 # Handle inline code
-                processed = self.handle_inline(line)
+                processed = self.handle_inline_code(line)
+
+                # Handle inline math
+                processed = self.handle_inline_math(line)
 
                 # Handle bold
                 processed = self.handle_bold(processed)
