@@ -620,7 +620,7 @@ class RstProcessor(Transformer):
                 processed = self.handle_inline_code(line)
 
                 # Handle inline math
-                processed = self.handle_inline_math(line)
+                processed = self.handle_inline_math(processed)
 
                 # Handle bold
                 processed = self.handle_bold(processed)
