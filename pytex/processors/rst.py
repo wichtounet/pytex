@@ -322,7 +322,9 @@ class RstProcessor(Transformer):
                     "}" + \
                     line[second_index+len(rst_end):]
 
-            first_index = line.find(rst_begin, second_index+len(rst_end))
+                first_index = line.find(rst_begin, first_index)
+            else:
+                first_index = line.find(rst_begin, second_index+len(rst_end))
 
         return line
 
@@ -336,14 +338,19 @@ class RstProcessor(Transformer):
             if second_index == -1:
                 break
 
-            if second_index - first_index > len(rst_begin):
+            length = second_index - first_index
+
+            if length > len(rst_begin):
                 line = line[:first_index] + \
                     latex_begin + \
                     line[first_index+len(rst_begin):second_index] + \
                     latex_end + \
                     line[second_index+len(rst_end):]
 
-            first_index = line.find(rst_begin, second_index+len(rst_end))
+                first_index = line.find(rst_begin, first_index)
+            else:
+                first_index = line.find(rst_begin, second_index+len(rst_end))
+
 
         return line
 
