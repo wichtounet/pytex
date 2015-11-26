@@ -267,13 +267,35 @@ class RstProcessor(Transformer):
                 elif lines[i + n].startswith('   :center:'):
                     center = True
                     n += 1
+                elif lines[i + n].startswith('   :label:'):
+                    label = True
+                    label_str = lines[i + n].replace('   :label: ', "")
+                    n += 1
+                elif lines[i + n].startswith('   :caption:'):
+                    caption = True
+                    caption_str = lines[i + n].replace('   :caption: ', "")
+                    n += 1
                 else:
                     break
+
+            figure = caption or label
+
+            if figure:
+                self.print_line("\\begin{figure}")
 
             if center:
                 self.print_line("\center")
 
             self.print_line("\includegraphics[width=" + factor + "\\textwidth]{" + path + "}")
+
+            if caption:
+                self.print_line("\caption{" + caption_str + "}")
+
+            if label:
+                self.print_line("\label{" + label_str + "}")
+
+            if figure:
+                self.print_line("\\end{figure}")
 
             return [True, n - 1]
 
