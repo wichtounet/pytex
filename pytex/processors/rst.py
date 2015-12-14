@@ -402,6 +402,28 @@ class RstProcessor(Transformer):
     def handle_glossary(self, line):
         return self.handle_style(line, "|", "|", "gls")
 
+    # Handle all styles
+    def handle_styles(self, line):
+        # Handle inline code
+        processed = self.handle_inline_code(line)
+
+        # Handle inline math
+        processed = self.handle_inline_math(processed)
+
+        # Handle bold
+        processed = self.handle_bold(processed)
+
+        # Handle emphasis
+        processed = self.handle_emphasis(processed)
+
+        # Handle citations
+        processed = self.handle_citations(processed)
+
+        # Handle glossary
+        processed = self.handle_glossary(processed)
+
+        return processed
+
     # Handle options
     def handle_options(self, lines):
         for line in lines:
@@ -647,24 +669,6 @@ class RstProcessor(Transformer):
 
             # Handle styles
             if step is self.STEP_STYLES:
-                # Handle inline code
-                processed = self.handle_inline_code(line)
-
-                # Handle inline math
-                processed = self.handle_inline_math(processed)
-
-                # Handle bold
-                processed = self.handle_bold(processed)
-
-                # Handle emphasis
-                processed = self.handle_emphasis(processed)
-
-                # Handle citations
-                processed = self.handle_citations(processed)
-
-                # Handle glossary
-                processed = self.handle_glossary(processed)
-
-                self.print_line(processed)
+                self.print_line(self.handle_styles(line))
 
         return step < self.STEPS
