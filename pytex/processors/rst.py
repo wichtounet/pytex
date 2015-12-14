@@ -330,30 +330,7 @@ class RstProcessor(Transformer):
         return [False, 0]
 
     # Handle some ReST style
-    def handle_style(self, line, rst_begin, rst_end, latex):
-        first_index = line.find(rst_begin)
-
-        while first_index != -1:
-            second_index = line.find(rst_end, first_index+len(rst_begin))
-
-            if second_index == -1:
-                break
-
-            if second_index - first_index > len(rst_begin):
-                line = line[:first_index] + \
-                    "\\" + latex + "{" + \
-                    line[first_index+len(rst_begin):second_index] + \
-                    "}" + \
-                    line[second_index+len(rst_end):]
-
-                first_index = line.find(rst_begin, first_index)
-            else:
-                first_index = line.find(rst_begin, second_index+len(rst_end))
-
-        return line
-
-    # Handle some ReST style
-    def handle_style_special(self, line, rst_begin, rst_end, latex_begin, latex_end):
+    def handle_style(self, line, rst_begin, rst_end, latex_begin, latex_end):
         first_index = line.find(rst_begin)
 
         while first_index != -1:
@@ -380,27 +357,27 @@ class RstProcessor(Transformer):
 
     # Handle inline code
     def handle_inline_code(self, line):
-        return self.handle_style(line, ":code:`", "`", "cppi")
+        return self.handle_style(line, ":code:`", "`", "\\cppi{", "}")
 
     # Handle inline math
     def handle_inline_math(self, line):
-        return self.handle_style_special(line, ":math:`", "`", "$", "$")
+        return self.handle_style(line, ":math:`", "`", "$", "$")
 
     # Handle bold
     def handle_bold(self, line):
-        return self.handle_style(line, "**", "**", "textbf")
+        return self.handle_style(line, "**", "**", "\\textbf{", "}")
 
     # Handle emphasis
     def handle_emphasis(self, line):
-        return self.handle_style(line, "*", "*", "textit")
+        return self.handle_style(line, "*", "*", "\\textit{", "}")
 
     # Handle citations
     def handle_citations(self, line):
-        return self.handle_style(line, "[", "]_", "autocite")
+        return self.handle_style(line, "[", "]_", "\\autocite{", "}")
 
     # Handle glossary terms
     def handle_glossary(self, line):
-        return self.handle_style(line, "|", "|", "gls")
+        return self.handle_style(line, "|", "|", "\\gls{", "}")
 
     # Handle all styles
     def handle_styles(self, line):
