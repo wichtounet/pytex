@@ -256,6 +256,8 @@ class RstProcessor(Transformer):
         if stripped.startswith('.. image:: '):
             path = stripped.replace('.. image:: ', "")
 
+            caption = False
+            label = False
             center = False
             factor = ""
 
