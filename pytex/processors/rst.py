@@ -3,6 +3,7 @@ from collections import namedtuple
 from base import Transformer
 
 List = namedtuple("List", "depth type")
+Style = namedtuple("Style", "rst_begin rst_end latex_begin latex_end")
 
 
 class RstProcessor(Transformer):
@@ -329,77 +330,52 @@ class RstProcessor(Transformer):
 
         return [False, 0]
 
-    # Handle some ReST style
-    def handle_style(self, line, rst_begin, rst_end, latex_begin, latex_end):
-        first_index = line.find(rst_begin)
-
-        while first_index != -1:
-            second_index = line.find(rst_end, first_index+len(rst_begin))
-
-            if second_index == -1:
-                break
-
-            length = second_index - first_index
-
-            if length > len(rst_begin):
-                line = line[:first_index] + \
-                    latex_begin + \
-                    line[first_index+len(rst_begin):second_index] + \
-                    latex_end + \
-                    line[second_index+len(rst_end):]
-
-                first_index = line.find(rst_begin, first_index)
-            else:
-                first_index = line.find(rst_begin, second_index+len(rst_end))
-
-
-        return line
-
-    # Handle inline code
-    def handle_inline_code(self, line):
-        return self.handle_style(line, ":code:`", "`", "\\cppi{", "}")
-
-    # Handle inline math
-    def handle_inline_math(self, line):
-        return self.handle_style(line, ":math:`", "`", "$", "$")
-
-    # Handle bold
-    def handle_bold(self, line):
-        return self.handle_style(line, "**", "**", "\\textbf{", "}")
-
-    # Handle emphasis
-    def handle_emphasis(self, line):
-        return self.handle_style(line, "*", "*", "\\textit{", "}")
-
-    # Handle citations
-    def handle_citations(self, line):
-        return self.handle_style(line, "[", "]_", "\\autocite{", "}")
-
-    # Handle glossary terms
-    def handle_glossary(self, line):
-        return self.handle_style(line, "|", "|", "\\gls{", "}")
-
     # Handle all styles
     def handle_styles(self, line):
-        # Handle inline code
-        processed = self.handle_inline_code(line)
+        styles = []
+        styles.append(Style(":code:`", "`", "\\cppi{", "}"))
+        styles.append(Style(":math:`", "`", "$", "$"))
+        styles.append(Style("**", "**", "\\textbf{", "}"))
+        styles.append(Style("*", "*", "\\textit{", "}"))
+        styles.append(Style("[", "]_", "\\autocite{", "}"))
+        styles.append(Style("|", "|", "\\gls{", "}"))
 
-        # Handle inline math
-        processed = self.handle_inline_math(processed)
+        first_index = 0
 
-        # Handle bold
-        processed = self.handle_bold(processed)
+        while first_index < len(line):
+            min = -1
+            for style in styles:
+                begin = line.find(style.rst_begin, first_index)
 
-        # Handle emphasis
-        processed = self.handle_emphasis(processed)
+                if begin == -1:
+                    continue
 
-        # Handle citations
-        processed = self.handle_citations(processed)
+                end = line.find(style.rst_end, begin + len(style.rst_begin))
 
-        # Handle glossary
-        processed = self.handle_glossary(processed)
+                if end == -1:
+                    continue
 
-        return processed
+                length = end - begin
+
+                if length > len(style.rst_begin) and (begin < min or min == -1):
+                    min = begin
+                    min_style = style
+
+            if min < 0:
+                break
+
+            first_index = min
+            second_index = line.find(min_style.rst_end, first_index+len(min_style.rst_begin))
+
+            line = line[:first_index] + \
+                min_style.latex_begin + \
+                line[first_index+len(min_style.rst_begin):second_index] + \
+                min_style.latex_end + \
+                line[second_index+len(min_style.rst_end):]
+
+            first_index = first_index - len(min_style.rst_begin) - len(min_style.rst_end) + len(min_style.latex_begin) + len(min_style.latex_end) + (second_index - first_index)
+
+        return line
 
     # Handle options
     def handle_options(self, lines):
