@@ -203,6 +203,16 @@ class RstProcessor(Transformer):
                 self.print_line("\\begin{frame}{Table of Contents}")
                 self.print_line("\\tableofcontents[currentsection,hideothersubsections]")
                 self.print_line("\\end{frame}")
+            elif toc_name == "currentsub":
+                self.print_line("\\begin{frame}{Table of Contents}")
+                self.print_line("\\setcounter{tocdepth}{2}");
+                self.print_line("\\tableofcontents[currentsection,hideothersubsections,currentsubsection,subsectionstyle=show/shaded/hide]")
+                self.print_line("\\end{frame}")
+            elif toc_name == "currentsubdeep":
+                self.print_line("\\begin{frame}{Table of Contents}")
+                self.print_line("\\setcounter{tocdepth}{3}");
+                self.print_line("\\tableofcontents[currentsection,hideothersubsections,currentsubsection,subsectionstyle=show/shaded/hide]")
+                self.print_line("\\end{frame}")
             elif toc_name == "shallow":
                 self.print_line("\\begin{frame}{Table of Contents}")
                 self.print_line("\\begingroup");
