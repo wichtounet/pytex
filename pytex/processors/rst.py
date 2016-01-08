@@ -184,7 +184,7 @@ class RstProcessor(Transformer):
             self.inside_frame = True
 
             self.print_line("\subsection*{" + title + "}")
-            self.print_line("\\begin{frame}[fragile]{" + frame_name + "}")
+            self.print_line("\\begin{frame}[fragile]{" + title + "}")
 
             return True
         elif stripped.startswith('.. toc::'):
