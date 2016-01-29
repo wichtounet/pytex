@@ -340,6 +340,19 @@ class RstProcessor(Transformer):
 
         return [False, 0]
 
+    # Handle todo notes
+    def handle_todo(self, line):
+        stripped = line.rstrip()
+
+        if stripped.startswith('.. todo:: '):
+            note = stripped.replace('.. todo:: ', "")
+
+            self.print_line("\\todo[inline]{" + note + "}")
+
+            return True
+
+        return False
+
     # Handle all styles
     def handle_styles(self, line):
         styles = []
@@ -511,6 +524,11 @@ class RstProcessor(Transformer):
             ret_blocks, inc_blocks = self.handle_blocks(lines, i)
             if ret_blocks:
                 i += inc_blocks
+                i += 1
+                continue
+
+            # Handle todo notes
+            if self.handle_todo(line):
                 i += 1
                 continue
 
