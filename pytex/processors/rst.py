@@ -117,10 +117,16 @@ class RstProcessor(Transformer):
 
             return "\item " + stripped.replace("-", "", 1)
 
-        elif line.startswith('   ') and self.list_stack:
+        elif line.startswith('  ') and self.list_stack and self.list_stack[-1].type == 1:
             # At this point, we consider a line starting with 3 spaces
             # as a continuation of the list
             return line
+
+        elif line.startswith('   ') and self.list_stack and self.list_stack[-1].type == 2:
+            # At this point, we consider a line starting with 3 spaces
+            # as a continuation of the list
+            return line
+
         else:
             while self.list_stack:
                 self.end_list()
