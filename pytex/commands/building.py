@@ -59,6 +59,7 @@ class Compile(Command):
 
         nomencl = self.get_nomencl_version(tempdir, master)
 
+        # Initial compilation of the source files
         success = self.compile(tempdir, master, defs=defs)
 
         nomencl = nomencl != self.get_nomencl_version(tempdir, master)
@@ -81,6 +82,8 @@ class Compile(Command):
             self.logger.info('Compiling document with {} support'.format(
                 support))
 
+            # Compile all the submodules
+
             if args.bibtex:
                 self.compile_bib(tempdir, master)
 
@@ -93,6 +96,7 @@ class Compile(Command):
             if nomencl:
                 self.compile_nomencl(tempdir, master)
 
+            # Final compilation (twice, ty latex...)
             self.compile(tempdir, master, defs=defs)
             success = self.compile(tempdir, master, defs=defs)
 
