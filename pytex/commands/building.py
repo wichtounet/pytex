@@ -63,7 +63,7 @@ class Compile(Command):
 
         nomencl = nomencl != self.get_nomencl_version(tempdir, master)
 
-        recompile = args.bibtex or args.glossary or nomencl
+        recompile = args.bibtex or args.glossary or args.index or nomencl
 
         if success and recompile:
             support = []
