@@ -32,17 +32,21 @@ class RstProcessor(Transformer):
             while self.list_stack:
                 self.end_list()
 
+    # Compute a label name
+    def compute_label(self, type, title):
+        source_base = os.path.basename(self.source)
+        source_clean = source_base.replace(' ', '_')
+        type_clean = type.replace(' ', '_')
+        title_clean = title.replace(' ', '_')
+        return source_clean + ":" + type_clean + ":" + title_clean
+
     # Add a new label
     def add_label(self, type, title):
-        source_base = os.path.basename(self.source)
-        source_clean = source_base.replace(' ', '_');
-        type_clean = type.replace(' ', '_');
-        title_clean = title.replace(' ', '_');
-        label = source_clean + ":" + type_clean + ":" + title_clean
+        label = self.compute_label(type, title)
 
         self.print_line("\\label{" + label + "}")
 
-        self.refernces.append(Reference(type, title, label))
+        self.references.append(Reference(type, title, label))
 
     # start a list
     def start_list(self, depth, type):
@@ -379,6 +383,66 @@ class RstProcessor(Transformer):
 
         return False
 
+    # Handle links
+    def handle_links(self, line):
+        first_index = 0
+
+        rst_begin = "`"
+        rst_end = "`_"
+
+        while first_index < len(line):
+            begin = line.find(rst_begin, first_index)
+
+            if begin == -1:
+                break
+
+            end = line.find(rst_end, begin + len(rst_begin))
+
+            if end == -1:
+                break
+
+            length = end - begin
+
+            first_index = begin
+
+            if length > len(rst_begin):
+                title = line[begin+len(rst_begin):end]
+
+                count = 0
+                for ref in self.references:
+                    if ref.title == title:
+                        count = count + 1
+
+                if count == 0:
+                    self.logger.info("Invalid reference {}".format(title))
+                    first_index = end
+                    line = line[:begin] + title + line[end+len(rst_end):]
+                elif count > 1:
+                    self.logger.info("Ambiguous reference {}".format(title))
+                    first_index = end
+                    line = line[:begin] + title + line[end+len(rst_end):]
+                else:
+                    for ref in self.references:
+                        if ref.title == title:
+                            if ref.type == "chapter":
+                                replacement = "Chapter~\\ref{"
+                            else:
+                                replacement = "Section~\\ref{"
+
+                            replacement = replacement + ref.label + "}"
+
+                            break
+
+                    line = line[:begin] + \
+                        replacement + \
+                        line[end+len(rst_end):]
+
+                    first_index = begin - len(rst_begin) - len(rst_end) + len(replacement)
+            else:
+                first_index = end
+
+        return line
+
     # Handle all styles
     def handle_styles(self, line):
         styles = []
@@ -642,7 +706,8 @@ class RstProcessor(Transformer):
     STEP_SECTIONS = STEP_OPTIONS + 1
     STEP_DIRECTIVES = STEP_SECTIONS + 1
     STEP_LISTS = STEP_DIRECTIVES + 1
-    STEP_STYLES = STEP_LISTS + 1
+    STEP_LINKS = STEP_LISTS + 1
+    STEP_STYLES = STEP_LINKS + 1
     STEPS = STEP_STYLES
 
     # Process a single file
@@ -680,6 +745,10 @@ class RstProcessor(Transformer):
             # Handle lists
             if step is self.STEP_LISTS:
                 self.print_line(self.handle_lists(line))
+
+            # Handle links
+            if step is self.STEP_LINKS:
+                self.print_line(self.handle_links(line))
 
             # Handle styles
             if step is self.STEP_STYLES:

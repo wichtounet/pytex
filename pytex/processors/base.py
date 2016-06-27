@@ -28,7 +28,10 @@ class Transformer(object):
             # This method is optional in subclass
             pass
 
+        # Reset the system
         self.processed_lines = []
+        self.references = []
+        self.options =  []
 
     # Process file and write the result to the transformed file
     def process_file(self, source):
