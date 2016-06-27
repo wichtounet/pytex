@@ -1,14 +1,18 @@
+import os
+
 from collections import namedtuple
 
 from base import Transformer
 
 List = namedtuple("List", "depth type")
 Style = namedtuple("Style", "rst_begin rst_end latex_begin latex_end")
+Reference = namedtuple("Reference", "type title label")
 
 
 class RstProcessor(Transformer):
     list_stack = []
     inside_frame = False
+    references = []
 
     options = []
 
@@ -27,6 +31,18 @@ class RstProcessor(Transformer):
         if self.list_stack:
             while self.list_stack:
                 self.end_list()
+
+    # Add a new label
+    def add_label(self, type, title):
+        source_base = os.path.basename(self.source)
+        source_clean = source_base.replace(' ', '_');
+        type_clean = type.replace(' ', '_');
+        title_clean = title.replace(' ', '_');
+        label = source_clean + ":" + type_clean + ":" + title_clean
+
+        self.print_line("\\label{" + label + "}")
+
+        self.refernces.append(Reference(type, title, label))
 
     # start a list
     def start_list(self, depth, type):
@@ -587,21 +603,28 @@ class RstProcessor(Transformer):
                     if "chapter" in self.options:
                         if index is 0:
                             self.print_line("\chapter{" + title + "}")
+                            self.add_label("chapter", title);
                         elif index is 1:
                             self.print_line("\section{" + title + "}")
+                            self.add_label("section", title);
                         elif index is 2:
                             self.print_line("\subsection{" + title + "}")
+                            self.add_label("subsection", title);
                         elif index is 3:
                             self.print_line("\subsubsection{" + title + "}")
+                            self.add_label("subsubsection", title);
                         else:
                             self.print_line("Section too deep:" + title)
                     else:
                         if index is 0:
                             self.print_line("\section{" + title + "}")
+                            self.add_label("section", title);
                         elif index is 1:
                             self.print_line("\subsection{" + title + "}")
+                            self.add_label("subsection", title);
                         elif index is 2:
                             self.print_line("\subsubsection{" + title + "}")
+                            self.add_label("subsubsection", title);
                         else:
                             self.print_line("Section too deep:" + first_line)
 
