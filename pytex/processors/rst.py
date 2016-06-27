@@ -122,20 +122,20 @@ class RstProcessor(Transformer):
 
             return "\item " + stripped.replace("1.", "", 1)
 
-        elif stripped.startswith('*'):
+        elif stripped.startswith('* '):
             self.handle_item(depth, 1)
 
-            return "\item " + stripped.replace("*", "", 1)
+            return "\item " + stripped.replace("* ", "", 1)
 
-        elif stripped.startswith('+'):
+        elif stripped.startswith('+ '):
             self.handle_item(depth, 1)
 
-            return "\item " + stripped.replace("+", "", 1)
+            return "\item " + stripped.replace("+ ", "", 1)
 
-        elif stripped.startswith('-'):
+        elif stripped.startswith('- '):
             self.handle_item(depth, 1)
 
-            return "\item " + stripped.replace("-", "", 1)
+            return "\item " + stripped.replace("- ", "", 1)
 
         elif line.startswith('  ') and self.list_stack and self.list_stack[-1].type == 1:
             # At this point, we consider a line starting with 3 spaces
