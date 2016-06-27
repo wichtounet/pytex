@@ -10,6 +10,8 @@ class Transformer(object):
         with open(source, 'r') as sourcefile:
             source_lines = sourcefile.read().splitlines()
 
+        self.source = file
+
         step = 0
         while self.process_lines(source_lines, step):
             source_lines = self.processed_lines
