@@ -451,7 +451,10 @@ class RstProcessor(Transformer):
         styles.append(Style("**", "**", "\\textbf{", "}"))
         styles.append(Style("*", "*", "\\textit{", "}"))
         styles.append(Style("[", "]_", "\\autocite{", "}"))
+        styles.append(Style("|", "s|", "\\glspl{", "}"))
         styles.append(Style("|", "|", "\\gls{", "}"))
+
+        min_style = styles[0]
 
         first_index = 0
 
@@ -471,6 +474,9 @@ class RstProcessor(Transformer):
                 length = end - begin
 
                 if length > len(style.rst_begin) and (begin < min or min == -1):
+                    if style == styles[6] and min_style == styles[5]:
+                        continue;
+
                     min = begin
                     min_style = style
 
