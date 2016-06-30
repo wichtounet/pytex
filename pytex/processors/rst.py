@@ -476,7 +476,10 @@ class RstProcessor(Transformer):
 
                 if length > len(style.rst_begin) and (begin < min or min == -1):
                     if style == styles[6] and min_style == styles[5]:
-                        continue;
+                        continue
+
+                    if style == styles[5] and "|" in line[begin+len(style.rst_begin):end]:
+                        continue
 
                     min = begin
                     min_style = style
