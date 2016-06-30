@@ -508,6 +508,20 @@ class RstProcessor(Transformer):
     def end_code(self):
         self.inside_code = False
         self.print_line("\\end{" + self.code + "code}")
+
+        if self.listing:
+            if len(self.listing_caption) > 0:
+                self.print_line("\\caption{" + self.listing_caption + "}")
+
+            if len(self.listing_label) > 0:
+                self.print_line("\\label{" + self.listing_label + "}")
+
+            self.listing_caption = ""
+            self.listing_label = ""
+            self.listing = False
+
+            self.print_line("\\end{listing}")
+
         self.print_line("%__rst_ignore__")
 
     # Handle code directive
@@ -530,12 +544,40 @@ class RstProcessor(Transformer):
 
             # The line is consumed
             return True
+        elif stripped.startswith('.. listing:: '):
+            if self.inside_code:
+                self.end_code()
+
+            self.code = stripped.replace('.. listing:: ', "").strip()
+            self.listing = True
+            self.listing_caption = ""
+            self.listing_label = ""
+
+            if not self.code:
+                self.code = "cpp"
+
+            self.inside_code = True
+
+            self.print_line("%__rst_ignore__")
+            self.print_line("\\begin{listing}")
+            self.print_line("\\begin{" + self.code + "code}")
+
+            # The line is consumed
+            return True
         elif self.inside_code and len(stripped) > 0 and not stripped.startswith('  '):
             self.end_code()
 
             # We do not consume this line
             return False
         elif self.inside_code:
+            if self.listing and line.startswith('   :caption:'):
+                self.listing_caption = line.replace('   :caption: ', "")
+                return True
+
+            if self.listing and line.startswith('   :label:'):
+                self.listing_label = line.replace('   :label: ', "")
+                return True
+
             # The line is printed and then consumed
             self.print_line(line)
             return True
