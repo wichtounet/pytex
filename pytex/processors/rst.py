@@ -496,6 +496,33 @@ class RstProcessor(Transformer):
 
         return line
 
+    # Final cleanup
+    def final_cleanup(self, lines):
+        composed_line = ""
+        ignored = False
+
+        for line in lines:
+            if "__rst_ignore__" in line:
+                ignored = not ignored
+                self.print_line(line)
+                continue
+
+            if ignored:
+                self.print_line(line)
+                continue
+
+            # An empty line is the end of a paragraph
+            if len(line) == 0:
+                if len(composed_line) > 0:
+                    self.print_line(composed_line)
+                composed_line = ""
+                self.print_line(line)
+            else:
+                composed_line = composed_line + " " + line
+
+        if len(composed_line) > 0:
+            self.print_line(composed_line)
+
     # Handle options
     def handle_options(self, lines):
         for line in lines:
@@ -756,7 +783,8 @@ class RstProcessor(Transformer):
     STEP_LISTS = STEP_DIRECTIVES + 1
     STEP_LINKS = STEP_LISTS + 1
     STEP_STYLES = STEP_LINKS + 1
-    STEPS = STEP_STYLES
+    STEP_CLEAN = STEP_STYLES + 1
+    STEPS = STEP_CLEAN
 
     # Process a single file
     def process_lines(self, lines, step):
@@ -780,26 +808,32 @@ class RstProcessor(Transformer):
 
             return True
 
-        for line in lines:
-            if "__rst_ignore__" in line:
-                ignored = not ignored
-                self.print_line(line)
-                continue
+        # Handle line-wise steps
+        if step < self.STEP_CLEAN:
+            for line in lines:
+                if "__rst_ignore__" in line:
+                    ignored = not ignored
+                    self.print_line(line)
+                    continue
 
-            if ignored:
-                self.print_line(line)
-                continue
+                if ignored:
+                    self.print_line(line)
+                    continue
 
-            # Handle lists
-            if step is self.STEP_LISTS:
-                self.print_line(self.handle_lists(line))
+                # Handle lists
+                if step is self.STEP_LISTS:
+                    self.print_line(self.handle_lists(line))
 
-            # Handle links
-            if step is self.STEP_LINKS:
-                self.print_line(self.handle_links(line))
+                # Handle links
+                if step is self.STEP_LINKS:
+                    self.print_line(self.handle_links(line))
 
-            # Handle styles
-            if step is self.STEP_STYLES:
-                self.print_line(self.handle_styles(line))
+                # Handle styles
+                if step is self.STEP_STYLES:
+                    self.print_line(self.handle_styles(line))
+
+        # Final cleanup
+        if step is self.STEP_CLEAN:
+            self.final_cleanup(lines)
 
         return step < self.STEPS
