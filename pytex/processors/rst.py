@@ -1,4 +1,5 @@
 import os
+import re
 
 from collections import namedtuple
 
@@ -496,6 +497,21 @@ class RstProcessor(Transformer):
 
         return line
 
+    # Clean a final line
+    def clean_line(self, line):
+        # 1. Merge multiple autocite together
+        check = True
+        while check:
+            cleaned_line = re.sub(r"\\autocite\{([a-zA-Z0-9,]*)\}[\s]*\\autocite\{([a-zA-Z0-9,]*)\}", r"\\autocite{\1,\2}", line)
+            check = cleaned_line != line
+            line = cleaned_line
+
+        # 2. Adds a insecable space in front of autocite
+        cleaned_line = re.sub(r"\\autocite\{([a-zA-Z0-9,]*)\}", r"~\\autocite{\1}", line)
+        line = cleaned_line
+
+        return cleaned_line
+
     # Final cleanup
     def final_cleanup(self, lines):
         composed_line = ""
@@ -514,14 +530,14 @@ class RstProcessor(Transformer):
             # An empty line is the end of a paragraph
             if len(line) == 0:
                 if len(composed_line) > 0:
-                    self.print_line(composed_line)
+                    self.print_line(self.clean_line(composed_line))
                 composed_line = ""
                 self.print_line(line)
             else:
                 composed_line = composed_line + " " + line
 
         if len(composed_line) > 0:
-            self.print_line(composed_line)
+            self.print_line(self.clean_line(composed_line))
 
     # Handle options
     def handle_options(self, lines):
