@@ -96,9 +96,12 @@ class Compile(Command):
             if nomencl:
                 self.compile_nomencl(tempdir, master)
 
-            # Final compilation (twice, ty latex...)
-            self.compile(tempdir, master, defs=defs)
+            # Compilation to include the modules
             success = self.compile(tempdir, master, defs=defs)
+
+            # In final mode, copile a second time
+            if success and args.final:
+                success = self.compile(tempdir, master, defs=defs)
 
         if success:
             self.copy_pdf(tempdir, master, dest)
@@ -117,6 +120,8 @@ class Compile(Command):
         parser.add_argument('--glossary', '-g', action='store_const',
                             const=True, default=False)
         parser.add_argument('--index', '-i', action='store_const',
+                            const=True, default=False)
+        parser.add_argument('--final', '-f', action='store_const',
                             const=True, default=False)
         parser.add_argument('--define', '-d', action='append')
         parser.add_argument('master', nargs='?', default='master')
