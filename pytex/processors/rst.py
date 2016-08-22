@@ -452,7 +452,6 @@ class RstProcessor(Transformer):
         styles.append(Style("**", "**", "\\textbf{", "}"))
         styles.append(Style("*", "*", "\\textit{", "}"))
         styles.append(Style("[", "]_", "\\autocite{", "}"))
-        styles.append(Style("|", "s|", "\\glspl{", "}"))
         styles.append(Style("|", "|", "\\gls{", "}"))
 
         min_style = styles[0]
@@ -475,25 +474,33 @@ class RstProcessor(Transformer):
                 length = end - begin
 
                 if length > len(style.rst_begin) and (begin < min or min == -1):
-                    if style == styles[6] and min_style == styles[5]:
-                        continue;
-
                     min = begin
                     min_style = style
 
             if min < 0:
                 break
 
+            rst_begin = min_style.rst_begin
+            rst_end = min_style.rst_end
+            latex_begin = min_style.latex_begin
+            latex_end = min_style.latex_end
+
             first_index = min
-            second_index = line.find(min_style.rst_end, first_index+len(min_style.rst_begin))
+            second_index = line.find(rst_end, first_index+len(rst_begin))
+
+            # Handle plural acronym
+            if rst_begin == "|" and line[second_index - 1] == 's':
+                second_index = second_index - 1
+                rst_end = "s|"
+                latex_begin = "\\glspl{"
 
             line = line[:first_index] + \
-                min_style.latex_begin + \
-                line[first_index+len(min_style.rst_begin):second_index] + \
-                min_style.latex_end + \
-                line[second_index+len(min_style.rst_end):]
+                latex_begin + \
+                line[first_index+len(rst_begin):second_index] + \
+                latex_end + \
+                line[second_index+len(rst_end):]
 
-            first_index = first_index - len(min_style.rst_begin) - len(min_style.rst_end) + len(min_style.latex_begin) + len(min_style.latex_end) + (second_index - first_index)
+            first_index = first_index - len(rst_begin) - len(rst_end) + len(latex_begin) + len(latex_end) + (second_index - first_index)
 
         return line
 
