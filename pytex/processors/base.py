@@ -50,5 +50,4 @@ class Transformer(object):
 
     # print a line (save it for later)
     def print_line(self, line):
-
         self.processed_lines.append(line)
