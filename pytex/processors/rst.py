@@ -538,6 +538,11 @@ class RstProcessor(Transformer):
                 self.print_line(line)
                 continue
 
+            # If the line starts with a command, we don't compose it
+            if len(line) > 0 and line.startswith("\\"):
+                self.print_line(line)
+                continue
+
             # An empty line is the end of a paragraph
             if len(line) == 0:
                 if len(composed_line) > 0:
