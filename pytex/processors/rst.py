@@ -275,6 +275,10 @@ class RstProcessor(Transformer):
             self.end_frame()
             self.print_line(line)
             return True
+        elif stripped.startswith('\\backupend') or stripped.startswith('\\backupbegin'):
+            self.end_frame()
+            self.print_line(line)
+            return True
         elif stripped.startswith('\section'):
             self.end_frame()
             self.print_line(line)
