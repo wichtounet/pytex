@@ -540,7 +540,12 @@ class RstProcessor(Transformer):
 
             # If the line starts with a command, we don't compose it
             if len(line) > 0 and line.startswith("\\"):
+                if len(composed_line) > 0:
+                    self.print_line(self.clean_line(composed_line))
+                    composed_line = ""
+
                 self.print_line(line)
+
                 continue
 
             # An empty line is the end of a paragraph
@@ -550,7 +555,10 @@ class RstProcessor(Transformer):
                 composed_line = ""
                 self.print_line(line)
             else:
-                composed_line = composed_line + " " + line
+                if len(composed_line) > 0:
+                    composed_line = composed_line + " " + line
+                else:
+                    composed_line = line
 
         if len(composed_line) > 0:
             self.print_line(self.clean_line(composed_line))
