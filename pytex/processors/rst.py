@@ -826,7 +826,7 @@ class RstProcessor(Transformer):
             if len(first_line) > 0 and len(second_line) > 0:
                 c = 0
                 char = second_line[0]
-                if char in ('#', '-', '_', '*', '+'):
+                if char in ('#', '-', '_', '*', '+', '='):
                     while c < len(second_line) and second_line[c] is char:
                         c = c + 1
 
