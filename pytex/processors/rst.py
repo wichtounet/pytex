@@ -555,6 +555,64 @@ class RstProcessor(Transformer):
         if len(composed_line) > 0:
             self.print_line(self.clean_line(composed_line))
 
+    def auto_ignore_env(self, env):
+        if env == "figure":
+            return True
+
+        if env == "table":
+            return True
+
+        if env == "algorithmic":
+            return True
+
+        return False
+
+    # auto ignore some lines
+    def auto_ignore(self, lines):
+        ignored = False
+        env_ignored = False
+
+        for line in lines:
+            if "__rst_ignore__" in line:
+                ignored = not ignored
+                self.print_line(line)
+                continue
+
+            if ignored:
+                self.print_line(line)
+                continue
+
+            stripped = line.rstrip()
+
+            if env_ignored:
+                if stripped.startswith("\\end{") and stripped.endswith("}"):
+                    new_env = stripped.replace("\\end{","")
+                    new_env = new_env.replace("}", "")
+
+                    if new_env == env:
+                        env_ignored = False
+                        self.print_line(line)
+                        self.print_line("%__rst_ignore__")
+                    else:
+                        self.print_line(line)
+                else:
+                        self.print_line(line)
+
+                continue
+
+            if stripped.startswith("\\begin{") and stripped.endswith("}"):
+                env = stripped.replace("\\begin{","")
+                env = env.replace("}", "")
+
+                if self.auto_ignore_env(env):
+                    self.print_line("%__rst_ignore__")
+                    self.print_line(line)
+                    env_ignored = True
+                else:
+                    self.print_line(line)
+            else:
+                self.print_line(line)
+
     # Handle options
     def handle_options(self, lines):
         for line in lines:
@@ -809,7 +867,8 @@ class RstProcessor(Transformer):
             # Print the very last line
             self.print_line(lines[len(lines) - 1])
 
-    STEP_OPTIONS = 0
+    STEP_AUTO_IGNORE = 0
+    STEP_OPTIONS = STEP_AUTO_IGNORE + 1
     STEP_SECTIONS = STEP_OPTIONS + 1
     STEP_DIRECTIVES = STEP_SECTIONS + 1
     STEP_LISTS = STEP_DIRECTIVES + 1
@@ -821,6 +880,12 @@ class RstProcessor(Transformer):
     # Process a single file
     def process_lines(self, lines, step):
         ignored = False
+
+        # Handle options
+        if step is self.STEP_AUTO_IGNORE:
+            self.auto_ignore(lines)
+
+            return True
 
         # Handle options
         if step is self.STEP_OPTIONS:
