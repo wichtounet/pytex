@@ -410,8 +410,9 @@ class Watch(Compile):
                 self.compile(tempdir, master, dest, defs=defs)
                 self.logger.info('All done')
             else:
-                self.logger.info('Change detected at {!r}, recompiling...'
-                                 .format(relative))
+                self.logger.info('Change detected at {!r}, recompiling...'.format(relative))
+                start = time.time();
+
                 nomencl = self.get_nomencl_version(tempdir, master)
                 success = self.compile(tempdir, master, defs=defs)
                 if success and nomencl != self.get_nomencl_version(tempdir,
@@ -421,10 +422,13 @@ class Watch(Compile):
                     self.compile_nomencl(tempdir, master)
                     self.compile(tempdir, master, defs=defs)
                     success = self.compile(tempdir, master, defs=defs)
-                    self.logger.info('All done')
+
+                end = time.time()
+                elapsed = end - start
 
                 if success:
                     self.copy_pdf(tempdir, master, dest)
+                    self.logger.info('All done in {:.3f}s'.format(elapsed))
 
         self.mktempdir(tempdir)
 
