@@ -544,7 +544,7 @@ class RstProcessor(Transformer):
                     self.print_line(self.clean_line(composed_line))
                     composed_line = ""
 
-                self.print_line(line)
+                self.print_line(self.clean_line(line))
 
                 continue
 
