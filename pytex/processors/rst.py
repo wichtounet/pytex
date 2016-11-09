@@ -570,6 +570,9 @@ class RstProcessor(Transformer):
         if env == "table":
             return True
 
+        if env == "algorithm":
+            return True
+
         if env == "algorithmic":
             return True
 
