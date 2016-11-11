@@ -157,6 +157,9 @@ class Compile(Command):
 
         if not os.path.exists(tempdir):
             os.mkdir(tempdir)
+            os.symlink(
+                    os.path.abspath(tempdir),
+                    os.path.abspath(os.path.join(tempdir, "build")))
         else:
             dirs = (d for d in dirs if not os.path.exists(d))
 
@@ -388,6 +391,7 @@ class Watch(Compile):
                         # If a new .tex file was added and the containing
                         # directory does not exist in the build root, create it
                         os.mkdir(builddir)
+                        os.symlink(os.path.abspath(builddir), os.path.abspath(os.path.join(builddir, "build")))
                         self.logger.info('Added subdirectory {!r} to the '
                                          'build directory'.format(subdir))
 
