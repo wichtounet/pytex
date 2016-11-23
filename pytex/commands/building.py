@@ -258,20 +258,45 @@ class Compile(Command):
 
         self.logger.debug(' '.join(cmd))
 
-        try:
-            for _ in range(runs):
-                subprocess.check_output(cmd)
-        except subprocess.CalledProcessError as e:
-            self.logger.error(e.output)
-            self.logger.error(e)
-            return False
-        else:
-            if dest:
-                self.logger.info('Done')
-                self.copy_pdf(tempdir, master, dest)
+        while True:
+            try:
+                for _ in range(runs):
+                    subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                output = e.output
+
+                tikz_error = 'Package tikz Error: Sorry, the system call \''
+                if tikz_error in output:
+                    begin = output.find(tikz_error)
+                    end = output.find('\' did NOT result', begin + len(tikz_error))
+
+                    if end != -1:
+                        recover_command = output[begin+len(tikz_error):end]
+
+                        self.logger.info("Detected Tikz error, trying to recover")
+
+                        try:
+                            subprocess.check_output(recover_command, stderr=subprocess.STDOUT,shell=True)
+                        except subprocess.CalledProcessError as se:
+                            if len(se.output) > 150:
+                                self.logger.info("Failed to recover from Tikz error")
+                            else:
+                                self.logger.info("Recovered from Tikz error, restarting Latex")
+                                continue
+                        else:
+                            self.logger.info("Recovered from Tikz error, restarting Latex")
+                            continue
+
+                self.logger.error(e.output)
+                self.logger.error(e)
+                return False
             else:
-                self.logger.debug('Intermediary compilation done')
-            return True
+                if dest:
+                    self.logger.info('Done')
+                    self.copy_pdf(tempdir, master, dest)
+                else:
+                    self.logger.debug('Intermediary compilation done')
+                return True
 
     def copy_pdf(self, tempdir, master, dest):
         shutil.copyfile(os.path.join(tempdir, '{}.pdf'.format(master)), dest)
