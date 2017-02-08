@@ -757,6 +757,7 @@ class RstProcessor(Transformer):
     def handle_directives(self, lines):
         self.inside_code = False
         self.inside_math = False
+        self.listing = False
 
         n = len(lines)
         i = 0
