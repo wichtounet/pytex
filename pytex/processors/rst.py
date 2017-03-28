@@ -227,9 +227,11 @@ class RstProcessor(Transformer):
                 toc_name = "main"
 
             if toc_name == "main":
+                self.print_line("\\setcounter{tocdepth}{1}")
                 self.print_line("\\begin{frame}{Table of Contents}")
                 self.print_line("\\tableofcontents[hidesubsections]")
                 self.print_line("\\end{frame}")
+                self.print_line("\\setcounter{tocdepth}{3}")
             elif toc_name == "current":
                 self.print_line("\\begin{frame}{Table of Contents}")
                 self.print_line("\\tableofcontents[currentsection,hideothersubsections]")
