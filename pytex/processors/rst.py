@@ -722,6 +722,43 @@ class RstProcessor(Transformer):
             return False
 
     # End math block
+    def end_splitmath(self):
+        self.inside_splitmath = False
+        self.print_line("\\end{split}")
+        self.print_line("\\end{align}")
+        self.print_line("%__rst_ignore__")
+
+    # Handle math directive
+    def handle_splitmath(self, line):
+        stripped = line.rstrip()
+
+        if stripped.startswith('.. splitmath::'):
+            if self.inside_splitmath:
+                self.end_splitmath()
+
+            self.inside_splitmath = True
+
+            self.print_line("%__rst_ignore__")
+            self.print_line("\\begin{align}")
+            self.print_line("\\begin{split}")
+
+            # The line is consumed
+            return True
+        elif self.inside_splitmath and not stripped.startswith('  '):
+            self.end_splitmath()
+
+            # We do not consume this line
+            return False
+        elif self.inside_splitmath:
+            # The line is printed and then consumed
+            self.print_line(line)
+            return True
+        else:
+            # We do not consume this line
+            return False
+
+
+    # End math block
     def end_math(self):
         self.inside_math = False
         self.print_line("\\end{align}")
@@ -759,6 +796,7 @@ class RstProcessor(Transformer):
     def handle_directives(self, lines):
         self.inside_code = False
         self.inside_math = False
+        self.inside_splitmath = False
         self.listing = False
 
         n = len(lines)
@@ -774,6 +812,11 @@ class RstProcessor(Transformer):
 
             # Handle math directives
             if self.handle_math(line):
+                i += 1
+                continue
+
+            # Handle math directives
+            if self.handle_splitmath(line):
                 i += 1
                 continue
 
