@@ -938,7 +938,7 @@ class RstProcessor(Transformer):
     def process_lines(self, lines, step):
         ignored = False
 
-        # Handle options
+        # Ignore some lines
         if step is self.STEP_AUTO_IGNORE:
             self.auto_ignore(lines)
 
