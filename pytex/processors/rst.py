@@ -457,8 +457,13 @@ class RstProcessor(Transformer):
         styles.append(Style(":math:`", "`", "$", "$"))
         styles.append(Style("**", "**", "\\textbf{", "}"))
         styles.append(Style("*", "*", "\\textit{", "}"))
-        styles.append(Style("[", "]_", "\\autocite{", "}"))
         styles.append(Style("|", "|", "\\gls{", "}"))
+
+        # Handle citations
+        if "nobiblatex" in self.options:
+            styles.append(Style("[", "]_", "\\cite{", "}"))
+        else:
+            styles.append(Style("[", "]_", "\\autocite{", "}"))
 
         min_style = styles[0]
 
@@ -512,18 +517,32 @@ class RstProcessor(Transformer):
 
     # Clean a final line
     def clean_line(self, line):
-        # 1. Merge multiple autocite together
-        check = True
-        while check:
-            cleaned_line = re.sub(r"\\autocite\{([a-zA-Z0-9,]*)\}[\s]*\\autocite\{([a-zA-Z0-9,]*)\}", r"\\autocite{\1,\2}", line)
-            check = cleaned_line != line
+        if "nobiblatex" in self.options:
+            # 1. Merge multiple cite together
+            check = True
+            while check:
+                cleaned_line = re.sub(r"\\cite\{([a-zA-Z0-9,]*)\}[\s]*\\cite\{([a-zA-Z0-9,]*)\}", r"\\cite{\1,\2}", line)
+                check = cleaned_line != line
+                line = cleaned_line
+
+            # 2. Adds a insecable space in front of cite
+            cleaned_line = re.sub(r"\\cite\{([a-zA-Z0-9,]*)\}", r"~\\cite{\1}", line)
             line = cleaned_line
 
-        # 2. Adds a insecable space in front of autocite
-        cleaned_line = re.sub(r"\\autocite\{([a-zA-Z0-9,]*)\}", r"~\\autocite{\1}", line)
-        line = cleaned_line
+            return cleaned_line
+        else:
+            # 1. Merge multiple autocite together
+            check = True
+            while check:
+                cleaned_line = re.sub(r"\\autocite\{([a-zA-Z0-9,]*)\}[\s]*\\autocite\{([a-zA-Z0-9,]*)\}", r"\\autocite{\1,\2}", line)
+                check = cleaned_line != line
+                line = cleaned_line
 
-        return cleaned_line
+            # 2. Adds a insecable space in front of autocite
+            cleaned_line = re.sub(r"\\autocite\{([a-zA-Z0-9,]*)\}", r"~\\autocite{\1}", line)
+            line = cleaned_line
+
+            return cleaned_line
 
     # Final cleanup
     def final_cleanup(self, lines):
@@ -637,6 +656,8 @@ class RstProcessor(Transformer):
 
                 if option == "chapter:":
                     self.options.append("chapter")
+                elif option == "nobiblatex:":
+                    self.options.append("nobiblatex")
             else:
                 self.print_line(line)
 
