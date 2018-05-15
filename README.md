@@ -10,21 +10,9 @@ the Latex syntax.
 Installation
 ------------
 
-You can use either `pip` or `easy_install` to install the latest `pytex`
-release from PyPI:
+You can exploit `pip` to install an editable copy locally:
 
-    pip install pytex
-
-Alternatively, you can download the latest development sources and
-install the package manually:
-
-    curl -L -o - https://github.com/GaretJax/pytex/tarball/develop | tar xz
-    cd GaretJax-pytex-*
-    python setup.py install
-
-or exploit `pip` to install an editable copy locally:
-
-    pip install -e git+https://github.com/GaretJax/pytex.git#egg=pytex
+    pip install -e git+https://github.com/wichtounet/pytex.git#egg=pytex
 
 
 Usage
